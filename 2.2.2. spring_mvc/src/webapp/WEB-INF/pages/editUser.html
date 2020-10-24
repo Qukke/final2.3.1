@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Edit</title>
+    </head>
+    <body>
+        <div style="text-align:left; padding:5px; margin:5px 0px; background:#ccc;">
+            <a th:href="@{/}">Go to Users</a>
+        </div>
+        <form th:action="@{/edit}" th:object="${user}">
+            <input type="hidden" name="id" th:value="${user.id}">
+
+            <fieldset>
+                <title>Edit user</title>
+                <p>
+                    <label th:for="name">First Name </label>
+                    <input type="text" name="name" th:id="name" th:value="${user.name}">
+                </p>
+                <p>
+                    <label th:for="lastName">Last name  </label>
+                    <input type="text" name="lastName" th:id="lastName" th:value="${user.lastName}">
+                </p>
+                <p>
+                    <label th:for="email">E-mail     </label>
+                    <input type="text" name="email" th:id="email" th:value="${user.email}">
+                </p>
+            </fieldset>
+
+            <input type="submit" value="Edit user">
+        </form>
+    </body>
+</html>
