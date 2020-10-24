@@ -1,6 +1,12 @@
 package web.config;
 
+import org.hibernate.jpa.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.context.annotation.*;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 import web.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -9,6 +15,8 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.naming.NamingException;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
@@ -33,30 +41,37 @@ public class AppConfig {
    }
 
    @Bean
-   public LocalSessionFactoryBean getSessionFactory() {
-      LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
-      factoryBean.setDataSource(getDataSource());
-      
-      Properties props=new Properties();
-      props.put("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
-      props.put("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
-
-      factoryBean.setHibernateProperties(props);
-      factoryBean.setAnnotatedClasses(User.class);
-      return factoryBean;
-   }
-
-   @Bean
-   public HibernateTransactionManager getTransactionManager() {
-      HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-      transactionManager.setSessionFactory(getSessionFactory().getObject());
+   public JpaTransactionManager jpaTransactionManager() {
+      JpaTransactionManager transactionManager = new JpaTransactionManager();
+      transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
       return transactionManager;
    }
 
-   //@Bean
-//   public AnnotationConfigApplicationContext getContext(){
-//      AnnotationConfigApplicationContext context =
-//              new AnnotationConfigApplicationContext(AppConfig.class);
-//      return context;
-//   }
+   @Bean
+   public HibernateJpaVendorAdapter vendorAdaptor() {
+      HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+      vendorAdapter.setShowSql(true);
+      return vendorAdapter;
+   }
+
+//   @Bean
+   public Properties hibernateProperties(){
+      Properties properties = new Properties();
+      properties.put( "hibernate.connection.driver_class", env.getProperty("db.driver"));
+      properties.put("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
+      properties.put("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
+      properties.put("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+      return properties;
+   }
+
+   @Bean
+   public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+      LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+      em.setJpaVendorAdapter(vendorAdaptor());
+      em.setDataSource( getDataSource() );
+      em.setPackagesToScan( "web" );
+      em.setJpaProperties( hibernateProperties() );
+      em.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+      return em;
+   }
 }

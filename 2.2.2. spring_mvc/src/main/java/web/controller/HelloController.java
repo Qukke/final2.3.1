@@ -1,13 +1,10 @@
 package web.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-import web.config.AppConfig;
 import web.model.User;
 import web.service.UserService;
 
@@ -20,44 +17,50 @@ public class HelloController {
 	private UserService userService;
 
 	@Autowired
-	public void setUserService(UserService userService){ this.userService = userService; }
-
-	@GetMapping(value = "/")
-	public String printWelcome(ModelMap model) {
-		List<String> messages = new ArrayList<>();
-		messages.add("Hello!");
-		messages.add("I'm Spring MVC application");
-		messages.add("5.2.0 version by sep'19 ");
-		model.addAttribute("messages", messages);
-		return "index";
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
-	@RequestMapping(value = "users", method = RequestMethod.GET)
-	public String listUsers(Model model){
+//	@GetMapping(value = "/")
+//	public String printWelcome(ModelMap model) {
+//		List<String> messages = new ArrayList<>();
+//		messages.add("Hello!");
+//		messages.add("I'm Spring MVC application");
+//		messages.add("5.2.0 version by sep'19 ");
+//		model.addAttribute("messages", messages);
+//		return "/WEB-INF/oldPages/index.html";
+//	}
+
+	@RequestMapping(value = {"/","/users"}, method = RequestMethod.GET)
+	public String listUsers(ModelMap model) {
+		model.addAttribute("listUsers", this.userService.listUsers());
 		model.addAttribute("user", new User());
-		model.addAttribute("listUsers", this.userService.listUsers());
 		return "users";
 	}
 
-	@RequestMapping(value = "users/add", method = RequestMethod.POST)
-	public String addUser(@ModelAttribute ("user") User user){
-			this.userService.add(user);
-		return "redirect:/users";
+	@GetMapping(value = "/add")
+	public String addUser(@ModelAttribute("user") User user) {
+//		System.out.println(user.toString());
+		this.userService.add(user);
+		return "redirect:/";
 	}
 
-	@RequestMapping("/remove/{id}")
-	public String removeUser(@PathVariable("id") Long id){
+	@GetMapping("/remove")
+	public String removeUser(@RequestParam("id") Long id) {
 		this.userService.removeById(id);
-		return "redirect:/users";
+		return "redirect:/";
 	}
 
-	@RequestMapping("edit/{id}")
-	public String editUser(@PathVariable("id") Long id, Model model){
-		model.addAttribute("user", this.userService.getUserById(id));
-		model.addAttribute("listUsers", this.userService.listUsers());
-		return "users";
+	@GetMapping(value = "/editUser")
+public String editUser(ModelMap model, @RequestParam("id") Long id) {
+	User user = userService.getUserById(id);
+	model.addAttribute("user", user);
+	return "/editUser";
+}
+
+	@GetMapping(value = "/edit")
+	public String edit(@ModelAttribute("user") User user) {
+		userService.edit(user);
+		return "redirect:/";
 	}
-
-
-	
 }
